@@ -1,8 +1,9 @@
-import { useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 
 const FilterSidebar = () => {
   const [searchParams, setSearchParams] = useSearchParams('')
+  const navigate = useNavigate()
   const [filters, setFilters] = useState({
     category: '',
     gender: '',
@@ -91,8 +92,35 @@ const FilterSidebar = () => {
     if (type === 'checkbox') {
       if (checked) {
         newFilters[name] = [...(newFilters[name] || []), value]
+      } else {
+        newFilters[name] = newFilters[name].filter((item) => item !== value)
       }
+    } else {
+      newFilters[name] = value
     }
+    setFilters(newFilters)
+    updateURLparams(newFilters)
+  }
+
+  const updateURLparams = (newFilters) => {
+    const params = new URLSearchParams()
+    Object.keys(newFilters).forEach((key) => {
+      if (Array.isArray(newFilters[key]) && newFilters[key].length > 0) {
+        params.append(key, newFilters[key].join(','))
+      } else if (newFilters[key]) {
+        params.append(key, newFilters[key])
+      }
+    })
+    setSearchParams(params)
+    navigate(`?${params.toString()}`)
+  }
+
+  const handlePriceChange = (e) => {
+    const newPrice = e.target.value
+    setPriceRange([0, newPrice])
+    const newFilters = { ...filters, minPrice: 0, maxPrice: newPrice }
+    setFilters(newFilters)
+    updateURLparams(newFilters)
   }
 
   return (
@@ -110,6 +138,7 @@ const FilterSidebar = () => {
               name='category'
               className='mr-2 h-4 w-4 text-blue-500 focus:ring-blue-400 border-gray-300'
               value={category}
+              checked={filters.category === category}
               onChange={handleFilterChange}
             />
             <span className='text-gray-700'> {category}</span>
@@ -126,6 +155,7 @@ const FilterSidebar = () => {
               name='gender'
               className='mr-2 h-4 w-4 text-blue-500 focus:ring-blue-400 border-gray-300'
               value={gender}
+              checked={filters.gender === gender}
               onChange={handleFilterChange}
             />
             <span className='text-gray-700'> {gender}</span>
@@ -138,7 +168,7 @@ const FilterSidebar = () => {
         <div className='flex flex-wrap gap-2'>
           {colors.map((color) => (
             <button
-              className='w-8 h-8 rounded-full border border-gray-600 cursor-pointer transition hover:scale-105 '
+              className={`w-8 h-8 rounded-full border border-gray-600 cursor-pointer transition hover:scale-105 ${filters.color === color ? 'ring-2 ring-blue-500' : ''}`}
               key={color}
               name='color'
               style={{ backgroundColor: color.toLocaleLowerCase() }}
@@ -159,6 +189,7 @@ const FilterSidebar = () => {
               name='size'
               value={size}
               onChange={handleFilterChange}
+              checked={filters.size.includes(size)}
               className='mr-2 h-4 w-4 text-blue-500 focus:ring-blue-400 border-gray-300'
             />
             <span className='text-gray-700'>{size}</span>
@@ -176,6 +207,7 @@ const FilterSidebar = () => {
               name='material'
               className='mr-2 h-4 w-4 text-blue-500 focus:ring-blue-400 border-gray-300'
               value={material}
+              checked={filters.material.includes(material)}
               onChange={handleFilterChange}
             />
             <span className='text-gray-700'>{material}</span>
@@ -194,6 +226,7 @@ const FilterSidebar = () => {
               className='mr-2 h-4 w-4 text-blue-500 focus:ring-blue-400 border-gray-300'
               value={brand}
               onChange={handleFilterChange}
+              checked={filters.brand.includes(brand)}
             />
             <span className='text-gray-700'>{brand}</span>
           </div>
@@ -205,7 +238,14 @@ const FilterSidebar = () => {
         <label className='block text-gray-600 font-medium mb-2'>
           Price Range
         </label>
-        <input type='range' name='priceRange' min={0} max={100} className='w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer' />
+        <input
+          type='range'
+          name='priceRange'
+          min={0} max={100}
+          className='w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer'
+          value={priceRange[1]}
+          onChange={handlePriceChange}
+        />
         <div className='flex justify-between text-gray-600 mt-2'>
           <span>$0</span>
           <span>{priceRange[1]}</span>
