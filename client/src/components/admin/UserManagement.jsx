@@ -61,7 +61,7 @@ const UserManagement = () => {
               name='name'
               value={formData.name}
               onChange={handleChange}
-              className='w-full p-2 border rounded-lg'
+              className='w-full p-2 border rounded-lg '
               required
             />
           </div>
